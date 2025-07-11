@@ -1,11 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
   const [selectedOption, setSelectedOption] = useState('');
-  const [voterId, setVoterId] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [hasVoted, setHasVoted] = useState(false);
+
+  // 生成随机标识
+  const generateRandomId = () => {
+    const adjectives = ['快乐的', '聪明的', '勇敢的', '友善的', '活泼的', '温柔的', '机智的', '幽默的'];
+    const animals = ['小猫', '小狗', '小鸟', '小兔', '小熊', '小鱼', '小鹿', '小象'];
+    const numbers = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+    
+    return `${randomAdjective}${randomAnimal}${numbers}`;
+  };
+
+  // 初始化时生成随机标识
+  const [voterId, setVoterId] = useState(() => generateRandomId());
+
+  const handleGenerateId = () => {
+    setVoterId(generateRandomId());
+  };
 
   if (!voteData) {
     return (
@@ -18,6 +36,19 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
   const { settings, votes, isVotingComplete, results } = voteData;
   const voteCount = Object.keys(votes).length;
   const remainingVotes = settings.totalPeople - voteCount;
+
+  // 获取可见的选项
+  const getVisibleOptions = () => {
+    if (!settings.options) return [];
+    // 兼容旧格式：如果是字符串数组，全部显示
+    if (typeof settings.options[0] === 'string') {
+      return settings.options;
+    }
+    // 新格式：只返回可见的选项
+    return settings.options.filter(option => option.visible).map(option => option.text);
+  };
+
+  const visibleOptions = getVisibleOptions();
 
   const handleSubmitVote = async (e) => {
     e.preventDefault();
@@ -76,9 +107,11 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
             <div className="space-y-3">
               {Object.entries(results).map(([option, count]) => {
                 const percentage = ((count / settings.totalPeople) * 100).toFixed(1);
+                // 确保选项显示为字符串，兼容新旧格式
+                const optionText = typeof option === 'object' ? option.text || option : option;
                 return (
-                  <div key={option} className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">{option}</span>
+                  <div key={optionText} className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">{optionText}</span>
                     <div className="flex items-center space-x-3">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div 
@@ -137,29 +170,13 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
           <h3 className="text-xl font-semibold text-gray-900 mb-6">请选择您的选项</h3>
           
           <form onSubmit={handleSubmitVote} className="space-y-6">
-            {/* 投票者标识 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                您的标识 *
-              </label>
-              <input
-                type="text"
-                value={voterId}
-                onChange={(e) => setVoterId(e.target.value)}
-                className="input-field max-w-xs"
-                placeholder="输入昵称或编号"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">用于区分不同投票者，保证匿名性</p>
-            </div>
-
             {/* 选项列表 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 选择选项 *
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {settings.options.map((option, index) => (
+                {visibleOptions.map((option, index) => (
                   <label
                     key={index}
                     className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
@@ -193,6 +210,41 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
                   </label>
                 ))}
               </div>
+              
+              {visibleOptions.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p>暂无可用的投票选项</p>
+                  <p className="text-sm mt-1">请联系管理员设置投票选项</p>
+                </div>
+              )}
+            </div>
+
+            {/* 投票者标识 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                您的标识 *
+              </label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={voterId}
+                  onChange={(e) => setVoterId(e.target.value)}
+                  className="input-field flex-1 max-w-xs"
+                  placeholder="输入昵称或编号"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateId}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-md border border-gray-300 transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>随机生成</span>
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">用于区分不同投票者，保证匿名性。可手动输入或点击随机生成</p>
             </div>
 
             {/* 消息提示 */}

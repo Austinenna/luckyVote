@@ -102,10 +102,23 @@ app.post('/api/vote', async (req, res) => {
       
       // 计算结果
       const results = {};
+      
+      // 获取选项文本，兼容新旧格式
+      const getOptionText = (option) => {
+        return typeof option === 'object' ? option.text : option;
+      };
+      
+      // 初始化结果对象
       data.settings.options.forEach(option => {
-        results[option] = 0;
+        const optionText = getOptionText(option);
+        // 只统计可见选项
+        if (typeof option === 'object' && !option.visible) {
+          return;
+        }
+        results[optionText] = 0;
       });
       
+      // 统计投票
       Object.values(data.votes).forEach(vote => {
         if (results.hasOwnProperty(vote)) {
           results[vote]++;
