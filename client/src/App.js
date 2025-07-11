@@ -9,19 +9,56 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('vote'); // 'vote', 'settings', 'results'
+  const [previousVotingStatus, setPreviousVotingStatus] = useState(false); // 跟踪之前的投票状态
 
   // 获取投票状态
-  const fetchVoteStatus = async () => {
+  const fetchVoteStatus = async (isPolling = false) => {
     try {
-      setLoading(true);
+      if (!isPolling) setLoading(true);
       const response = await axios.get('/api/vote-status');
-      setVoteData(response.data);
+      const newVoteData = response.data;
+      
+      // 检查投票是否刚刚完成
+      if (!previousVotingStatus && newVoteData.isVotingComplete) {
+        // 投票刚刚完成，刷新页面数据并停止轮询
+        setVoteData(newVoteData);
+        setPreviousVotingStatus(newVoteData.isVotingComplete);
+        setCurrentView('vote'); // 保持在投票页面显示完成结果
+        
+        // 显示投票完成通知
+        if (window.Notification && Notification.permission === 'granted') {
+          new Notification('投票已完成！', {
+            body: '所有人都已完成投票，查看结果吧！',
+            icon: '/favicon.ico'
+          });
+        }
+        
+        // 投票完成后停止轮询
+        return true; // 返回true表示需要停止轮询
+      } else if (isPolling && !newVoteData.isVotingComplete) {
+        // 轮询期间且投票未完成，只更新投票计数，不刷新整个页面
+        if (voteData && voteData.votes && Object.keys(newVoteData.votes).length !== Object.keys(voteData.votes).length) {
+          setVoteData(prev => ({
+            ...prev,
+            votes: newVoteData.votes
+          }));
+        }
+      } else if (!isPolling) {
+        // 非轮询情况下正常更新数据
+        setVoteData(newVoteData);
+        setPreviousVotingStatus(newVoteData.isVotingComplete);
+      }
+      
       setError(null);
+      return false; // 返回false表示继续轮询
     } catch (err) {
-      setError('获取投票状态失败');
-      console.error('Error fetching vote status:', err);
+      if (!isPolling) {
+        setError('获取投票状态失败');
+        console.error('Error fetching vote status:', err);
+      }
+      return false;
     } finally {
-      setLoading(false);
+      if (!isPolling) setLoading(false);
     }
   };
 
@@ -58,6 +95,7 @@ function App() {
     try {
       const response = await axios.post('/api/reset');
       setVoteData(response.data.data);
+      setPreviousVotingStatus(false); // 重置投票状态跟踪
       setCurrentView('vote');
       return { success: true };
     } catch (err) {
@@ -67,8 +105,50 @@ function App() {
   };
 
   useEffect(() => {
+    // 请求通知权限
+    if (window.Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
     fetchVoteStatus();
-  }, []);
+    
+    let pollInterval;
+    
+    // 设置轮询，每3秒检查一次投票状态
+    const startPolling = () => {
+      pollInterval = setInterval(async () => {
+        // 只有在页面可见且投票未完成时才轮询
+        if (!document.hidden && (!voteData || !voteData.isVotingComplete)) {
+          const shouldStop = await fetchVoteStatus(true);
+          if (shouldStop) {
+            clearInterval(pollInterval);
+          }
+        }
+      }, 3000);
+    };
+    
+    // 只有在投票未完成时才开始轮询
+    if (!voteData || !voteData.isVotingComplete) {
+      startPolling();
+    }
+    
+    // 页面可见性变化时的处理
+    const handleVisibilityChange = () => {
+      if (!document.hidden && (!voteData || !voteData.isVotingComplete)) {
+        fetchVoteStatus();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // 清理定时器和事件监听器
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [voteData?.isVotingComplete, previousVotingStatus]); // 添加previousVotingStatus作为依赖项
 
   if (loading) {
     return (

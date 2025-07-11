@@ -98,8 +98,7 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
     return (
       <div className="space-y-6">
         <div className="vote-card text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">投票已完成！</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">投票结果</h2>
           <p className="text-gray-600 mb-6">所有 {settings.totalPeople} 人都已投票完成</p>
           
           <div className="bg-gray-50 rounded-lg p-6 mb-6">
