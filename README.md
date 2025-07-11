@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
 [![React Version](https://img.shields.io/badge/react-18.2.0-blue.svg)](https://reactjs.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
 
 一个轻量级的匿名投票系统，专为游戏红包局设计，支持网页和手机端使用。
 
@@ -140,7 +140,7 @@ luckyVote/
 
 ## 🤝 贡献指南
 
-欢迎提交Issue和Pull Request来改进这个项目！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详细的贡献指南。
+欢迎提交Issue和Pull Request来改进这个项目！请查看 [CONTRIBUTING.md](docs/CONTRIBUTING.md) 了解详细的贡献指南。
 
 ### 快速贡献
 
@@ -162,7 +162,7 @@ luckyVote/
 
 - [问题反馈](../../issues)
 - [功能请求](../../issues/new?template=feature_request.md)
-- [贡献指南](CONTRIBUTING.md)
+- [贡献指南](docs/CONTRIBUTING.md)
 
 ## 🆘 常见问题
 
