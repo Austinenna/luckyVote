@@ -93,6 +93,10 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
     }
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   // 如果投票已完成，显示结果预览
   if (isVotingComplete) {
     return (
@@ -294,12 +298,20 @@ const VoteInterface = ({ voteData, onSubmitVote, onReset }) => {
       {voteCount > 0 && (
         <div className="vote-card bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">管理员操作</h3>
-          <button
-            onClick={handleReset}
-            className="vote-button vote-button-danger"
-          >
-            重置投票
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleReset}
+              className="vote-button vote-button-danger w-auto px-6"
+            >
+              重置投票
+            </button>
+            <button
+              onClick={handleRefresh}
+              className="vote-button vote-button-secondary w-auto px-6"
+            >
+              刷新页面
+            </button>
+          </div>
           <p className="text-sm text-gray-500 mt-2">
             重置将清除所有投票记录，请谨慎操作
           </p>

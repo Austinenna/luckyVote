@@ -36,6 +36,10 @@ const VoteResults = ({ results, settings, onReset }) => {
     }
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="space-y-6">
       {/* 结果标题 */}
@@ -192,23 +196,29 @@ const VoteResults = ({ results, settings, onReset }) => {
 
       {/* 操作按钮 */}
       <div className="vote-card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">操作</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">管理员操作</h3>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleReset}
-            className="vote-button vote-button-primary flex-1"
+            className="vote-button vote-button-primary w-auto px-6"
           >
-            开始新投票
+            重置投票
+          </button>
+          <button
+            onClick={handleRefresh}
+            className="vote-button vote-button-secondary w-auto px-6"
+          >
+            刷新页面
           </button>
           <button
             onClick={() => window.print()}
-            className="vote-button vote-button-secondary flex-1"
+            className="vote-button vote-button-secondary w-auto px-6"
           >
             打印结果
           </button>
         </div>
         <p className="text-sm text-gray-500 mt-3">
-          开始新投票将清除当前所有数据，请确认后操作
+          重置投票将清除所有投票记录，请谨慎操作
         </p>
       </div>
     </div>
